@@ -1,0 +1,118 @@
+@baseUrl = http://localhost:8080/api/v1
+@todoId = 1
+
+### 1. 创建完整任务：预期 201
+POST {{baseUrl}}/todos
+Content-Type: application/json
+
+{
+  "title": "学习 Gin API",
+  "description": "练习路由、参数校验和数据库操作",
+  "priority": "high",
+  "due_date": "2026-12-31"
+}
+
+### 2. 仅提交必填字段：预期 201
+POST {{baseUrl}}/todos
+Content-Type: application/json
+
+{
+  "title": "整理学习笔记"
+}
+
+### 3. 默认分页查询：预期 200
+# 默认第一页，每页最多 20 条
+GET {{baseUrl}}/todos
+
+### 4. 组合筛选：预期 200
+GET {{baseUrl}}/todos?status=pending&priority=high&search=API&page=1&page_size=10
+
+### 5. 空搜索词：预期 200
+GET {{baseUrl}}/todos?search=
+
+### 6. 查询单条任务：预期 200
+# 检查 due_date 仍为 YYYY-MM-DD，没有附带时间
+GET {{baseUrl}}/todos/{{todoId}}
+
+### 7. 更新任务内容：预期 200
+# 检查响应包含原有 status、created_at 和新的 updated_at
+PUT {{baseUrl}}/todos/{{todoId}}
+Content-Type: application/json
+
+{
+  "title": "学习 Gin API：更新后的任务",
+  "description": "补充错误处理和分页查询",
+  "priority": "medium",
+  "due_date": "2027-01-15"
+}
+
+### 8. 标记完成：预期 200
+PATCH {{baseUrl}}/todos/{{todoId}}/status?status=completed
+
+### 9. 检查完成状态：预期 200
+# status=completed，completed_at 有值
+GET {{baseUrl}}/todos/{{todoId}}
+
+### 10. 恢复待办：预期 200
+PATCH {{baseUrl}}/todos/{{todoId}}/status?status=pending
+
+### 11. 检查恢复后的状态：预期 200
+# status=pending，completed_at 字段不再输出
+GET {{baseUrl}}/todos/{{todoId}}
+
+### 12. 缺少标题：预期 400
+POST {{baseUrl}}/todos
+Content-Type: application/json
+
+{
+  "priority": "high"
+}
+
+### 13. 非法日期：预期 400
+POST {{baseUrl}}/todos
+Content-Type: application/json
+
+{
+  "title": "非法日期测试",
+  "due_date": "2026-02-30"
+}
+
+### 14. 非法优先级：预期 400
+POST {{baseUrl}}/todos
+Content-Type: application/json
+
+{
+  "title": "非法优先级测试",
+  "priority": "urgent"
+}
+
+### 15. 非法页码：预期 400
+GET {{baseUrl}}/todos?page=0
+
+### 16. 每页条数超过上限：预期 400
+GET {{baseUrl}}/todos?page_size=101
+
+### 17. 非法筛选状态：预期 400
+GET {{baseUrl}}/todos?status=abc
+
+### 18. 非法 ID：预期 400
+GET {{baseUrl}}/todos/0
+
+### 19. 缺少更新状态：预期 400
+PATCH {{baseUrl}}/todos/{{todoId}}/status
+
+### 20. 非法更新状态：正确行为应为 400
+# 如果尚未补充状态枚举校验，当前代码会返回 500
+PATCH {{baseUrl}}/todos/{{todoId}}/status?status=abc
+
+### 21. 删除任务：预期 200
+DELETE {{baseUrl}}/todos/{{todoId}}
+
+### 22. 查询已删除任务：预期 404
+GET {{baseUrl}}/todos/{{todoId}}
+
+### 23. 重复删除：预期 404
+DELETE {{baseUrl}}/todos/{{todoId}}
+
+### 24. 清空测试数据
+DELETE {{baseUrl}}/todos/2
