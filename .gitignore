@@ -1,2 +1,5 @@
+# 操作系统文件
+.DS_Store
+
 # 本地 SQLite 数据库
 /todos.db
